@@ -12,10 +12,10 @@ from datetime import datetime, timedelta
 # — Page Configuration —
 
 st.set_page_config(
-layout=“wide”,
-page_title=“ECG Freight Intelligence”,
-page_icon=“🚢”,
-initial_sidebar_state=“collapsed”
+    layout="wide", 
+    page_title="ECG Freight Intelligence", 
+    page_icon="🚢",
+    initial_sidebar_state="collapsed"
 )
 
 # — Advanced Styling —
