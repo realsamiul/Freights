@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Automated license processing for Bangladesh government. 81% R² freight prediction, 14-day approval cycle reduced to 3 days.">
+    <!-- Loader styles, fonts, CSS, and JS unchanged -->
+    <style>
+        .loader { /* ... */ }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+    <title>Government Document Intelligence - M0NARQ AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+    <!-- Sweet Sans Pro @font-face rules -->
+    <style>
+        /* ...font-face rules... */
+    </style>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/project.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/CustomEase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+</head>
+<body class="page-project">
+    <div class="page-wrapper">
+        <div class="page-content">
+            <div class="loader" data-loader>
+                <div class="loader-circle"></div>
+                <p class="loader-text">Loading</p>
+            </div>
+            <header class="header">
+                <a href="../index.html" class="header-logo">M0NARQ</a>
+                <nav class="header-nav">
+                    <button class="menu-button" data-menu-toggle aria-label="Open menu">
+                        <span class="menu-text">Menu</span>
+                        <div class="burger">
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                        </div>
+                    </button>
+                </nav>
+            </header>
+            <div class="menu-overlay" data-menu-overlay>
+                <nav>
+                    <ul class="menu-nav">
+                        <li class="menu-item"><a href="../index.html" class="menu-link">Home</a></li>
+                        <li class="menu-item"><a href="../work.html" class="menu-link">Work</a></li>
+                        <li class="menu-item"><a href="../studio.html" class="menu-link">Studio</a></li>
+                        <li class="menu-item"><a href="../story.html" class="menu-link">Story</a></li>
+                        <li class="menu-item"><a href="../contact.html" class="menu-link">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <main>
+                <p class="hook">
+                  Bureaucracy at the speed of REST.
+                </p>
+                <header class="hero">
+                  <h1>Gov Document Intel</h1>
+                  <p>94.8 % extraction · 5-8 s per form · $0.20 doc.</p>
+                  <img src="/assets/img/amaterasu-hero.jpg"
+                       alt="Government clerk with code overlay">
+                </header>
+                <ul class="stats">
+                  <li>94.8 % accuracy</li>
+                  <li>10 k forms / 3 days</li>
+                  <li>$0.20 per doc</li>
+                  <li>8 ministries in queue</li>
+                </ul>
+                <section id="problem">
+                  <h2>Legacy Paper, Meet Llama 3</h2>
+                  <p>
+                    48 million sheets are filed yearly across ministries; manual entry
+                    swallows <strong>18 % of payroll</strong>.
+                  </p>
+                </section>
+                <section id="pipeline">
+                  <h2>Pipeline</h2>
+                  <ol>
+                    <li>Image pre-clean: deskew, binarise (OpenCV)</li>
+                    <li>LayoutLMv3 + Bangla-BERT extract 25 fields</li>
+                    <li>Vector search: FAISS (2.3 M clauses)</li>
+                    <li>Llama 3-70B-4bit RAG answers compliance Qs</li>
+                  </ol>
+                  <pre>
+answer = llama_rag("Does this land deed violate Sec-12A?", doc_id)
+                  </pre>
+                </section>
+                <section id="impact" class="full-bleed">
+                  <h2>Pilot Result</h2>
+                  <p>
+                    8-month backlog cleared in 11 working days.
+                    14 clerks reassigned to fraud investigation; first case caught in week 2.
+                  </p>
+                </section>
+                <section id="security" class="dark">
+                  <h2>Security & Sovereignty</h2>
+                  <p>
+                    All servers run inside Bangladesh NTT Tier-3 DC; no document leaves
+                    the sovereign region. Models audited for hallucination ≥2 × a month.
+                  </p>
+                </section>
+                <section id="roadmap">
+                  <h2>Next Stops</h2>
+                  <ul>
+                    <li>Land, Tax, Immigration forms Q3</li>
+                    <li>Mobile van scanning (edge-CPU inference)</li>
+                    <li>Public portal API (banks, telcos)</li>
+                  </ul>
+                </section>
+                <div class="gallery lateral-scroll">
+                  <img src="/assets/img/amaterasu-form-annot.jpg"
+                       alt="Trade licence with bounding boxes">
+                  <img src="/assets/img/amaterasu-rag-diagram.svg"
+                       alt="RAG architecture diagram">
+                  <img src="/assets/img/amaterasu-json.jpg"
+                       alt="JSON output in console">
+                  <img src="/assets/img/amaterasu-office.jpg"
+                       alt="Ministry hallway">
+                </div>
+                <section id="quote">
+                  <blockquote>
+                    “We processed this quarter’s forms in four days instead of four
+                    weeks.”<br>
+                    <small>— Deputy Secretary, Ministry of Commerce</small>
+                  </blockquote>
+                  <a class="button" href="/contact">Automate your backlog</a>
+                </section>
+            </main>
+            <footer class="footer">
+                <div class="container">
+                    <div class="footer-content">
+                        <!-- Columns unchanged -->
+                    </div>
+                    <div class="footer-bottom">
+                        <p>&copy; 2025 M0NARQ AI. All rights reserved.</p>
+                        <p>Dhaka, Bangladesh</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="../js/animations.js" defer></script>
+</body>
+</html>
