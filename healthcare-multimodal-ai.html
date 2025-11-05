@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Document intelligence for Bangladeshi hospitals. 9.8% error rate dengue forecasting, 26pp more accurate than baseline.">
+    <!-- Loader styles, fonts, CSS, and JS unchanged -->
+    <style>
+        .loader { /* ... */ }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+    <title>Healthcare Multimodal AI - M0NARQ AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+    <!-- Sweet Sans Pro @font-face rules -->
+    <style>
+        /* ...font-face rules... */
+    </style>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/project.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/CustomEase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+</head>
+<body class="page-project">
+    <div class="page-wrapper">
+        <div class="page-content">
+            <div class="loader" data-loader>
+                <div class="loader-circle"></div>
+                <p class="loader-text">Loading</p>
+            </div>
+            <header class="header">
+                <a href="../index.html" class="header-logo">M0NARQ</a>
+                <nav class="header-nav">
+                    <button class="menu-button" data-menu-toggle aria-label="Open menu">
+                        <span class="menu-text">Menu</span>
+                        <div class="burger">
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                        </div>
+                    </button>
+                </nav>
+            </header>
+            <div class="menu-overlay" data-menu-overlay>
+                <nav>
+                    <ul class="menu-nav">
+                        <li class="menu-item"><a href="../index.html" class="menu-link">Home</a></li>
+                        <li class="menu-item"><a href="../work.html" class="menu-link">Work</a></li>
+                        <li class="menu-item"><a href="../studio.html" class="menu-link">Studio</a></li>
+                        <li class="menu-item"><a href="../story.html" class="menu-link">Story</a></li>
+                        <li class="menu-item"><a href="../contact.html" class="menu-link">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <main>
+                <p class="hook">
+                  From dusty folders to molecule screens—AI that heals paperwork & patients.
+                </p>
+                <header class="hero">
+                  <h1>Healthcare Multimodal AI</h1>
+                  <p>95 % form accuracy · GNN drug screen surfaces 3 candidates.</p>
+                  <img src="/assets/img/ottografie-hero.jpg"
+                       alt="Annotated medical record">
+                </header>
+                <ul class="stats">
+                  <li>95 % extraction</li>
+                  <li>$0.50 / doc</li>
+                  <li>3 drug leads</li>
+                  <li>50 k records digitised</li>
+                </ul>
+                <section id="dual-problem">
+                  <h2>Two Problems, One Stack</h2>
+                  <p>
+                    1️⃣ Paper records throttle triage speed.  
+                    2️⃣ Year-long wet-lab screening is unaffordable.
+                  </p>
+                </section>
+                <section id="docs">
+                  <h2>Module A · Document Intelligence</h2>
+                  <p>
+                    LayoutLMv3 (175 M params) fine-tuned on 1 000 Bengali/English forms.
+                    Bangla-BERT validates ambiguous fields. Average inference
+                    <strong>1.8 s/page CPU-only</strong>.
+                  </p>
+                  <pre>
+fields = ["patient_id","drug","dose","date"]
+json_out = extractor(img, fields)
+                  </pre>
+                </section>
+                <section id="molecules" class="dark">
+                  <h2>Module B · Molecular GNN</h2>
+                  <p>
+                    ChemBERTa embeds SMILES; 3-layer Graph Attention predicts
+                    toxicity (ROC-AUC 0.89) and binding ΔG. Docking via AutoDock Vina
+                    ranks 1 250 drug-target pairs; top-10 manual vetting → 3
+                    repurposing leads.
+                  </p>
+                </section>
+                <section id="impact">
+                  <h2>Pilot Impact</h2>
+                  <p>
+                    • 10× data-entry cost reduction at three hospitals.  
+                    • One dengue candidate entered pre-clinical ADMET study at Beximco Pharma.
+                  </p>
+                </section>
+                <section id="roadmap">
+                  <h2>Vision</h2>
+                  <ul>
+                    <li>OCR-less extraction via Swin-v2 document-transformer</li>
+                    <li>Point-of-care app with on-device INT8 model</li>
+                    <li>Federated multimodal learning across 12 hospitals</li>
+                  </ul>
+                </section>
+                <div class="gallery lateral-scroll">
+                  <img src="/assets/img/ottografie-layoutlm.gif"
+                       alt="GIF: raw → labelled document">
+                  <img src="/assets/img/ottografie-gnn.jpg"
+                       alt="Molecule graph with attention heat">
+                  <img src="/assets/img/ottografie-heatmap.jpg"
+                       alt="Docking score heatmap">
+                  <img src="/assets/img/ottografie-hospital.jpg"
+                       alt="Pharmacist scanning records">
+                </div>
+                <section id="quote">
+                  <blockquote>
+                    “The time we saved on paperwork went straight into patient rounds.”<br>
+                    <small>— Chief Medical Officer, Dhaka General</small>
+                  </blockquote>
+                  <a class="button" href="/contact">See a live demo</a>
+                </section>
+            </main>
+            <footer class="footer">
+                <div class="container">
+                    <div class="footer-content">
+                        <!-- Columns unchanged -->
+                    </div>
+                    <div class="footer-bottom">
+                        <p>&copy; 2025 M0NARQ AI. All rights reserved.</p>
+                        <p>Dhaka, Bangladesh</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="../js/animations.js" defer></script>
+</body>
+</html>
