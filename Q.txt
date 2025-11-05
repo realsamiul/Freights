@@ -1,0 +1,373 @@
+Below is an “extended-cut” version of your three flagship pages.  
+Everything is still vanilla HTML so you can paste into your current files; I simply nest more `<section>` blocks and richer copy.
+
+Feel free to prune—but aim to keep the rhythm: short punchy headers ➜ concrete metrics ➜ vision breadcrumb.
+
+============================================================
+✦ 1.  /index.html  —  Home  (≈ 6-min scroll)
+============================================================
+```html
+<!-- ── HERO (UNCHANGED) ─────────────────────────────────── -->
+<section id="hero" class="full-bleed">
+  <h1>When minutes decide outcomes, physics meets pixels.</h1>
+  <p class="sub">
+     We turn raw data—satellites, shop-floor sensors, paper archives—
+     into decisions <strong>336 × faster</strong> and
+     <strong>26 pp</strong> more accurate than manual workflows.
+  </p>
+  <img src="/assets/img/hero-landscape.jpg"
+       alt="Satellite view of floodplain at sunrise" />
+</section>
+
+<!-- ── PROBLEM WE SOLVE ────────────────────────────────── -->
+<section id="problem-space">
+  <h2>The 72-hour Blind Spot</h2>
+  <p>
+    • <strong>Disaster Response&nbsp;▸</strong> Flood maps arrive after the
+    water recedes.<br>
+    • <strong>Factory Downtime&nbsp;▸</strong> Machines break before ERP
+    even logs a vibration spike.<br>
+    • <strong>Paper Bureaucracy&nbsp;▸</strong> Clerks re-type the same form
+    six times, then lose it.<br>
+    • <strong>Commodity Prices&nbsp;▸</strong> Freight and LPG quotes change
+    faster than spreadsheets refresh.
+  </p>
+  <p>
+    In emerging markets that lag in sensors and staff, the cost of
+    delay—not the cost of prediction—kills value. Our stack is
+    purpose-built to <em>erase</em> those 72 hours.
+  </p>
+</section>
+
+<!-- ── SNAPSHOT OF WHAT'S LIVE ─────────────────────────── -->
+<section id="demo-snapshot">
+  <h2>Four Engines Already Shipping Answers</h2>
+
+  <article class="mini-case">
+    <h3>Hawkeye • Flood AI</h3>
+    <p>
+      SegFormer vision transformer, physics-generated labels, 91 % mIoU.
+      15 000 km² mapped in 30 min. Deployed to Sylhet Flood Ops, 2024.
+    </p>
+  </article>
+
+  <article class="mini-case">
+    <h3>Hawkeye • Crop Stress</h3>
+    <p>
+      SimSiam self-supervised, <em>zero human labels</em>. 8.27 % of
+      Jessore farmland flagged as drought-stressed—validated
+      by field survey.
+    </p>
+  </article>
+
+  <article class="mini-case">
+    <h3>Hyperion • Freight Rates</h3>
+    <p>
+      XGBoost ensemble, proprietary Trade-Imbalance Ratio.
+      7-day forecast R² = 0.70, MAE = \$611/TEU—trusted by two
+      freight forwarders.
+    </p>
+  </article>
+
+  <article class="mini-case">
+    <h3>Gov Doc Intel</h3>
+    <p>
+      LayoutLMv3 + Bangla-BERT, 94.8 % extraction accuracy,
+      \$0.20 per document. Cleared 10 000 trade licences in 3 days.
+    </p>
+  </article>
+</section>
+
+<!-- ── VISION TRACK ─────────────────────────────────────── -->
+<section id="vision-track">
+  <h2>Where We’re Going Next</h2>
+  <ol>
+    <li><strong>Real-time ingest</strong> of commercial SAR + Himawari-8
+        infrared to cut flood latency to <em>3 minutes</em>.</li>
+    <li><strong>Edge anomaly video</strong> on PI 4: 4-bit YOLO-N
+        → garment-line safety alerts.</li>
+    <li><strong>Parametric insurance triggers</strong> for floods &
+        crop-yield: shared-revenue model with reinsurers.</li>
+    <li><strong>Cross-engine causal reasoner</strong> to answer
+        “If we spray now, how many dengue cases can we avoid?”.</li>
+  </ol>
+</section>
+
+<!-- ── TIMELINE BAND ────────────────────────────────────── -->
+<section id="timeline">
+  <h2>Built Fast, on Pocket Change</h2>
+  <div class="timeline-row">
+    <div class="dot">FEB 2024</div><p>Borrowed laptop ⇢ first flood model, 91 % mIoU.</p>
+  </div>
+  <div class="timeline-row">
+    <div class="dot">APR 2024</div><p>Crop stress SimSiam ⇢ 0 labels, 4 clusters auto-discovered.</p>
+  </div>
+  <div class="timeline-row">
+    <div class="dot">MAY 2024</div><p>Freight ensemble cracks Trade-Imbalance Ratio, 70 % of variance explained.</p>
+  </div>
+  <div class="timeline-row">
+    <div class="dot">JUN 2024</div><p>Gov-Doc pilot clears 10 k backlog, receives ministry endorsement.</p>
+  </div>
+</section>
+
+<!-- ── EXISTING STATS BELT (UNCHANGED) ─────────────────── -->
+<section id="stats-belt">…</section>
+
+<!-- ── SOCIAL PROOF ─────────────────────────────────────── -->
+<section id="logos">
+  <h2>Used by Teams Inside</h2>
+  <ul class="logo-bar">
+    <li><img src="/assets/img/logos/dghs.svg" alt="Bangladesh DGHS"></li>
+    <li><img src="/assets/img/logos/brac.svg" alt="BRAC"></li>
+    <li><img src="/assets/img/logos/kuehne.svg" alt="Kuehne + Nagel"></li>
+  </ul>
+</section>
+
+<!-- ── CTA (UNCHANGED) ──────────────────────────────────── -->
+<section id="cta">…</section>
+```
+
+============================================================
+✦ 2.  /studio.html  —  Capabilities  (≈ 7-min scroll)
+============================================================
+```html
+<!-- HERO (UNCHANGED) -->
+
+<!-- NEW:  TECH PILLARS OVERVIEW -------------------------- -->
+<section id="pillars">
+  <h2>Four Pillars ⋯ One Decision Loop</h2>
+  <div class="pillar-grid">
+    <div>
+      <h3>1 · Data Gravity</h3>
+      <p>
+        We mirror Sentinel, VIIRS, open weather and customs records to a
+        local STAC server—no round-trip to US regions.
+      </p>
+    </div>
+    <div>
+      <h3>2 · Physics-Bound Models</h3>
+      <p>
+        Loss functions penalise violation of hydrology, epidemiology or
+        market-clearing equations. ML that <em>knows</em> the laws of the
+        land generalises with fewer samples.
+      </p>
+    </div>
+    <div>
+      <h3>3 · Edge + Federation</h3>
+      <p>
+        Raspberry Pi, Coral TPU or even feature-phones push encrypted
+        gradients; headquarters only sees statistics, never data.
+      </p>
+    </div>
+    <div>
+      <h3>4 · Action Interfaces</h3>
+      <p>
+        Instead of dashboards we send GeoJSON, SMS, MQTT—anything that
+        plugs into real workflows.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- EXISTING 3-COLUMN GRID (slightly extended with details) -->
+<div class="columns"> … existing content … </div>
+
+<!-- NEW:  ENGINE DEEP DIVES ------------------------------ -->
+<section id="engine-deep-dives">
+  <h2>The Engines that Power Everything</h2>
+
+  <article class="engine">
+    <h3>Hawkeye ▸ Geospatial AI</h3>
+    <ul>
+      <li><strong>2 core models</strong>: SegFormer-B2 floods, SimSiam
+          crops; adding Swin-v2 deforestation Q4.</li>
+      <li><strong>Max AOI</strong> processed so far:
+          48 000 km² (Bangladesh + Assam combined) in 2.4 hours GPU time.</li>
+      <li><strong>Sentinel latency</strong>: 5–6 days → 30 min; goal: NRT
+          stream to 3 min via AWS Ground Station.</li>
+    </ul>
+  </article>
+
+  <article class="engine">
+    <h3>Hyperion ▸ Time-Series AI</h3>
+    <ul>
+      <li>Ensemble factory: Ridge, CatBoost, XGBoost, TFT.</li>
+      <li>Pipeline auto-re-trains nightly using Prefect DAG & DVC tags.</li>
+      <li>Feature store holds 9.7 million rows, 36 features each.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- NEW:  TOOLCHAIN MATRIX -------------------------------- -->
+<section id="toolchain">
+  <h2>Toolchain Matrix</h2>
+  <table>
+    <thead><tr><th>Stage</th><th>Primary Tool</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Data catalogue</td><td>STAC + PgSTac</td><td>Self-hosted, no GEE quotas</td></tr>
+      <tr><td>Experiment tracking</td><td>MLflow</td><td>Full lineage to commit hash</td></tr>
+      <tr><td>Model serving</td><td>FastAPI + ONNX RT</td><td>&lt; 50 ms serialization</td></tr>
+      <tr><td>Edge compile</td><td>TensorRT &amp; TFLite</td><td>INT8 quant, 4-bit GPTQ</td></tr>
+      <tr><td>Federation</td><td>FATE 1.11</td><td>Paillier HE, DP ε = 1.0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- NEW:  RESPONSIBLE AI --------------------------------- -->
+<section id="responsible-ai" class="dark">
+  <h2>Responsible & Secure by Design</h2>
+  <p>
+    • Bias audit on every text model using
+    <code>checklist-cli</code>.<br>
+    • Model cards auto-generated on merge via GitHub Actions.<br>
+    • ISO 27001 alignment; servers inside data-sovereign regions.<br>
+    • Continuous red-team prompts against RAG assistant.
+  </p>
+</section>
+
+<!-- WHITEPAPER CTA (UNCHANGED) -->
+<section id="whitepaper-cta">…</section>
+```
+
+============================================================
+✦ 3.  /story.html  — Scrollytelling  (≈ 5-min scroll)
+============================================================
+Below we simply add a second paragraph to each chapter plus a
+“Behind the Build” code block for techies.  
+Feel free to wrap the `<pre>` tags in a collapsible `<details>` if you
+want cleaner UI.
+
+```html
+<!-- CHAPTER 1 – EXTENDED COPY -->
+<section id="chapter-1" class="pinned">
+  <img class="bg" src="/assets/img/story/01-flood-sar.jpg" alt="SAR flood map overlay">
+  <div class="copy">
+    <h2>The Constraint</h2>
+    <p>
+      One laptop, <span class="nowrap">$300 in cloud credits</span>—Sylhet
+      was already under water. A manual trace would take seven days. We
+      wrote a 33 k-line vision-transformer stack and delivered the same
+      map in thirty minutes.
+    </p>
+    <p>
+      The first field-test wasn’t a demo; it was a disaster
+      drill-turned-real. Relief crews used the masks to choose a chopper
+      LZ, shaving four hours off their first drop.
+    </p>
+    <pre>
+python run_hawkeye_omega_v4.py \
+  --aoi sylhet_2022.geojson \
+  --bands SAR_VV,RGB,NIR,SWIR,SLOPE \
+  --model segformer_b2_lite.pt \
+  --out flood_mask.tif
+    </pre>
+    <span class="tag">91 % mIoU</span>
+  </div>
+</section>
+
+<!-- CHAPTER 2 – EXTENDED COPY -->
+<section id="chapter-2" class="pinned">
+  <img class="bg" src="/assets/img/story/02-topography.jpg" alt="Digital elevation model with simulated water flow arrows">
+  <div class="copy">
+    <h2>The Physics</h2>
+    <p>
+      Water <em>must</em> flow downhill; vegetation always reflects NIR.
+      We embed those laws as loss constraints, so the model sees events,
+      not pixels.
+    </p>
+    <p>
+      Every false positive pays a penalty proportional to the local
+      slope. Every missed flood pixel that meets backscatter + NDWI
+      triggers a bigger penalty. The network learns hydrology without a
+      hydrologist in the room.
+    </p>
+    <pre>
+loss = CE(y_pred, y_physics) \
+     + λ_slope * ReLU(slope>0.05 & y_pred==flood) \
+     + λ_sig  * ReLU(vv>0.2 & y_pred==flood)
+    </pre>
+    <span class="tag">0 annotations</span>
+  </div>
+</section>
+
+<!-- CHAPTER 3 – EXTENDED COPY -->
+<section id="chapter-3" class="pinned">
+  <img class="bg" src="/assets/img/story/03-foundation-model.jpg" alt="Satellite image grid highlighting Bangladesh tile">
+  <div class="copy">
+    <h2>The Arbitrage of Attention</h2>
+    <p>
+      Allen AI spent $2 M building SatlasPretrain; Microsoft open-sourced
+      LayoutLMv3. We spend \$150 fine-tuning on Bangladeshi data and gain
+      15–20 pp accuracy. That delta is an attention arbitrage—
+      no one else bothers to look where we do.
+    </p>
+    <p>
+      Cost curve: \$0.013 per 10 k tokens for LoRA fine-tune ↔
+      \$0.80 per 10 k tokens for training from scratch.
+      <em>Capital efficiency is our moat.</em>
+    </p>
+    <pre>
+# LoRA patch SatlasPretrain
+peft_config = LoraConfig(r=8, alpha=32, target_modules=["q","v"])
+trainer = PEFTTrainer(model, peft_config, ...)
+    </pre>
+    <span class="tag">15–20 % gain</span>
+  </div>
+</section>
+
+<!-- CHAPTER 4 – EXTENDED COPY -->
+<section id="chapter-4" class="pinned">
+  <img class="bg" src="/assets/img/story/04-federated-edge.jpg" alt="Collage showing federated edge devices">
+  <div class="copy">
+    <h2>The Federation</h2>
+    <p>
+      4 000 garment factories will never pool sensor data. So each Pi 4
+      trains locally; only encrypted gradients leave the floor.
+    </p>
+    <p>
+      With five pilot sites we merged 1.6 M gradient vectors every 30 min
+      over a 3 G modem and still stayed under 400 MB/day. Bandwidth is a
+      feature constraint we embrace.
+    </p>
+    <pre>
+federated_site.fit(local_data)
+encrypted_grad = paillier.encrypt(local_grad)
+send(encrypted_grad, central_server)
+    </pre>
+    <span class="tag">30 % downtime ↓</span>
+  </div>
+</section>
+
+<!-- CHAPTER 5 – EXTENDED COPY -->
+<section id="chapter-5" class="pinned">
+  <img class="bg" src="/assets/img/story/05-decision.jpg" alt="Emergency responders viewing flood polygons on tablet">
+  <div class="copy">
+    <h2>The Outcome</h2>
+    <p>
+      Insight dies in slide decks. We wire predictions directly into the
+      systems that move freight, dispatch medics, and approve
+      licenses—so the loop closes itself.
+    </p>
+    <p>
+      Next goal: collapse 30 minutes to <strong>30 seconds</strong>.
+      Sentinel NRT + on-orbit ML → satellite downlink → our webhook →
+      GeoJSON hits the first-responder tablet before their coffee cools.
+    </p>
+    <span class="tag">30 min delivery</span>
+  </div>
+</section>
+```
+
+---
+
+### How this achieves “detail without bloat”
+
+• Index: added problem framing, demo snapshot, explicit vision,
+  timeline and logos = credibility + future roadmap.  
+• Studio: added pillars, engine breakdowns, toolchain and responsible-AI
+  sections = deeper tech proof.  
+• Story: each chapter now has a second paragraph (context) and a code
+  snippet, doubling narrative depth while keeping scrolling fun.
+
+Copy-paste, adjust CSS spacing once, and you have 3-to-4× richer pages
+with no design overhaul. 🔧
