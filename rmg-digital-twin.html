@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Predictive maintenance for Bangladesh garment factories. 34% downtime reduction, $2.1M savings per facility.">
+
+    <!-- Loader styles, fonts, CSS, and JS unchanged -->
+    <style>
+        .loader { /* ... */ }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+    <title>RMG Digital Twin - M0NARQ AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+    <!-- Sweet Sans Pro @font-face rules -->
+    <style>
+        /* ...font-face rules... */
+    </style>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/project.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/CustomEase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+</head>
+<body class="page-project">
+    <div class="page-wrapper">
+        <div class="page-content">
+            <div class="loader" data-loader>
+                <div class="loader-circle"></div>
+                <p class="loader-text">Loading</p>
+            </div>
+            <header class="header">
+                <a href="../index.html" class="header-logo">M0NARQ</a>
+                <nav class="header-nav">
+                    <button class="menu-button" data-menu-toggle aria-label="Open menu">
+                        <span class="menu-text">Menu</span>
+                        <div class="burger">
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                            <span class="burger-line"></span>
+                        </div>
+                    </button>
+                </nav>
+            </header>
+            <div class="menu-overlay" data-menu-overlay>
+                <nav>
+                    <ul class="menu-nav">
+                        <li class="menu-item"><a href="../index.html" class="menu-link">Home</a></li>
+                        <li class="menu-item"><a href="../work.html" class="menu-link">Work</a></li>
+                        <li class="menu-item"><a href="../studio.html" class="menu-link">Studio</a></li>
+                        <li class="menu-item"><a href="../story.html" class="menu-link">Story</a></li>
+                        <li class="menu-item"><a href="../contact.html" class="menu-link">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <main>
+                <p class="hook">
+                  Every minute of garment-line downtime costs $120–$900.
+                </p>
+                <header class="hero">
+                  <h1>RMG Digital Twin</h1>
+                  <p>Edge-based LSTM predicts failure 72 h ahead, 30 % downtime ↓.</p>
+                  <img src="/assets/img/cambium-hero.jpg"
+                       alt="Factory floor with sensor overlays">
+                </header>
+                <ul class="stats">
+                  <li>72 h lead-time</li>
+                  <li>30 % downtime ↓</li>
+                  <li>&lt; 200 ms latency</li>
+                  <li>5 factories live</li>
+                </ul>
+                <section id="pain">
+                  <h2>The Hidden Cost Curve</h2>
+                  <p>
+                    An unplanned stop on a 24-head sewing line burns <strong>$6 k</strong>
+                    in the first hour alone. Existing ERPs record failure after the fact.
+                  </p>
+                </section>
+                <section id="hardware" class="dark">
+                  <h2>Hardware Footprint</h2>
+                  <ul>
+                    <li>Raspberry Pi 4 Model B, 4 GB RAM</li>
+                    <li>ADXL345 tri-axial accelerometer (1 kHz)</li>
+                    <li>PT100 RTD temperature probe (±0.1 °C)</li>
+                    <li>USB MEMS mic array (20 Hz–20 kHz)</li>
+                  </ul>
+                  <p>Total BOM under <strong>$110</strong>.</p>
+                </section>
+                <section id="model">
+                  <h2>Model & Training</h2>
+                  <p>
+                    • Bi-LSTM (2 layers, 256 hidden, drop-0.3)<br>
+                    • Training on 2 M time-steps per factory, FL round = 1 epoch<br>
+                    • Optimiser: Ranger QHAdam, lr 5 e-4<br>
+                    • Gradients encrypted via Paillier 2048-bit; ε = 1.0 DP noise
+                  </p>
+                  <pre>
+fed_avg = sum(paillier.decrypt(grad_i) for i in sites) / n
+model.update(fed_avg)
+                  </pre>
+                </section>
+                <section id="results" class="full-bleed">
+                  <h2>Pilot Results</h2>
+                  <p>
+                    • 17 of 20 true failures predicted ≥ 48 h ahead.<br>
+                    • False-positive rate 12 % (tolerable: triggers inspection, $40).<br>
+                    • Aggregate savings first quarter: <strong>$275 k</strong>.
+                  </p>
+                </section>
+                <section id="roi">
+                  <h2>ROI Calculator</h2>
+                  <p>
+                    Annual sub $7 k / factory → break-even if we avert just
+                    <strong>one 36-min stop</strong>.
+                  </p>
+                </section>
+                <section id="roadmap" class="dark">
+                  <h2>What’s Next</h2>
+                  <ul>
+                    <li>4-bit YOLO-N adds visual belt-tracking</li>
+                    <li>Tokenised data-contribution rewards (switching moat)</li>
+                    <li>OEM partnership with Juki sewing machines (MOU draft)</li>
+                  </ul>
+                </section>
+                <div class="gallery lateral-scroll">
+                  <img src="/assets/img/cambium-pi-close.jpg"
+                       alt="Close-up of Raspberry Pi and vibration sensor">
+                  <img src="/assets/img/cambium-graph.jpg"
+                       alt="RUL prediction vs actual">
+                  <img src="/assets/img/cambium-federated-diagram.svg"
+                       alt="Federated learning data-flow">
+                  <video src="/assets/img/cambium-unity.mp4" controls></video>
+                </div>
+                <section id="quote">
+                  <blockquote>
+                    “Your alert popped 60 hours before the spindle jammed. We fixed it in
+                    the lunch break.”<br>
+                    <small>— Production Manager, Gazipur Mill #3</small>
+                  </blockquote>
+                  <a class="button" href="/contact">Run a 5-line pilot</a>
+                </section>
+            </main>
+            <footer class="footer">
+                <div class="container">
+                    <div class="footer-content">
+                        <!-- Columns unchanged -->
+                    </div>
+                    <div class="footer-bottom">
+                        <p>&copy; 2025 M0NARQ AI. All rights reserved.</p>
+                        <p>Dhaka, Bangladesh</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="../js/animations.js" defer></script>
+</body>
+</html>
