@@ -1,0 +1,107 @@
+Below is the complete, website‑ready technical report content for the Crop Intelligence demo, matching the approved flood structure and optimized for expert audiences.[1]
+
+### Summary
+HAWKEYE Crop Intelligence performs zero‑label crop‑stress discovery by combining SimSiam self‑supervised representation learning with K‑Means clustering, identifying 8.27% stressed area in the Jessore AOI and separating four distinct land‑cover clusters.[2][3][1]
+The pipeline ingests Sentinel‑2 multispectral bands with DEM/slope, learns 512‑dim embeddings, clusters them without human labels, and exports a georeferenced stress map and overlays for agronomic triage.[4][5][1]
+
+### Scope of project
+Operationalize near–real‑time crop‑stress mapping that turns unlabeled satellite scenes into actionable field‑level guidance, emphasizing unsupervised discovery where ground truth is scarce.[3][1]
+Primary AOI is the Jessore agricultural region in Bangladesh; the demo operates at 30 m processing scale for Earth Engine throughput while preserving Sentinel‑2 spectral fidelity for reliable vegetation indices.[5][1]
+
+### Intention and objectives
+- Replace manual scouting with automated, statistically validated stress discovery that requires zero human labels while remaining interpretable via vegetation/water indices.[1][3]
+- Deliver binary stress rasters, confidence overlays, and cluster breakdowns that agronomists and insurers can use for targeted interventions and early claims triage.[3][4]
+
+### Datasets used
+- Sentinel‑2 optical: B2/B3/B4 (RGB), B5/B8 (red‑edge/NIR), B11/B12 (SWIR) for robust index computation and spectral separability.[5][1]
+- SRTM DEM with slope: terrain normalization and context for waterlogging and drainage effects.[1][5]
+- AOI window and dates: Jessore bounding box [89.2, 23.2, 89.35, 23.35], 2023‑11‑01 to 2024‑02‑28, cloud cover <15%.[5]
+
+### Variables targeted
+- Pixel‑wise classes: stressed vs non‑stressed vegetation exported as binary $$0/1$$ rasters and probability overlays.[4][3]
+- Unsupervised clusters: four land‑surface categories—Healthy, Water, Bare Soil, Stressed—derived from embedding space.[3][1]
+
+### Method and pipeline
+- Multi‑modal feature stack: normalized Sentinel‑2 bands plus derived NDVI/NDWI/moisture and slope features in a common grid for representation learning.[1][5]
+- Self‑supervised stage: SimSiam trains on unlabeled tiles to produce 512‑dim embeddings that encode vegetation condition and context.[5][1]
+- Clustering stage: K‑Means $$k=4$$ partitions embeddings; the stress cluster is selected via minimum mean NDVI and confirmed by low NIR/high SWIR signatures.[1][5]
+
+### Index rules and scientific thresholds
+- NDVI: $$ \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} $$ with stressed vegetation typically $$ \text{NDVI} \in[1]
+- NDWI: $$ \text{NDWI} = \frac{G - \text{NIR}}{G + \text{NIR}} $$ indicating surface water and leaf water content; lowered NDWI often co‑occurs with stress.[1]
+- Moisture index: $$ \text{MI} = \frac{\text{NIR} - \text{SWIR}_{1}}{\text{NIR} + \text{SWIR}_{1}} $$ capturing canopy water‑content via SWIR absorption.[5]
+
+### Model architecture
+- Representation learner: SimSiam with shared encoder, projector, and predictor; stop‑gradient on the target branch prevents collapse without negatives.[1]
+- Backbone: SimpleBackbone CNN producing 512‑dim global descriptors per tile, trained with SGD/AdamW and strong spatial flips/crops for invariances.[5][1]
+- Clustering: scikit‑learn K‑Means $$k=4$$ over per‑pixel feature vectors assembled from indices and bands; centroid assignment yields the per‑pixel cluster map.[3][5]
+
+### Core formulas
+- SimSiam loss: $$ L = -\frac{1}{2}\big(\cos(p_{1}, \text{sg}(z_{2})) + \cos(p_{2}, \text{sg}(z_{1}))\big) $$, where sg denotes stop‑gradient.[1]
+- K‑Means objective: $$ \min_{\{\mu_{j}\}} \sum_{j=1}^{k} \sum_{x_{i}\in C_{j}} \lVert x_{i} - \mu_{j} \rVert^{2} $$ with K‑Means++ initialization for stability.[1]
+- Stress percent: $$ \%\text{Stress} = 100 \cdot \frac{\sum \mathbf{1}[c(x)=\text{stress}]}{\text{pixels}} $$.[2][5]
+
+### Python script snippets (illustrative)
+- Index computation and feature stack (from the demo pipeline): this derives NDVI, NDWI, and a moisture index before clustering.[5]
+```python
+nir, red, green, swir1 = data[:,:,4], data[:,:,0], data[:,:,1], data[:,:,5]
+ndvi = (nir - red) / (nir + red + 1e-6)
+ndwi = (green - nir) / (green + nir + 1e-6)
+moisture = (nir - swir1) / (nir + swir1 + 1e-6)
+feature_stack = np.stack([ndvi, ndwi, moisture, *[data[:,:,i] for i in range(min(7, data.shape[-1]))]], axis=-1)
+```
+- SimSiam training loop (conceptual excerpt): stop‑gradient on the target ensures stable representation learning without negative pairs.[5][1]
+```python
+z1 = projector(backbone(x1)); z2 = projector(backbone(x2))
+p1, p2 = predictor(z1), predictor(z2)
+loss = -0.5 * (F.cosine_similarity(p1, z2.detach(), dim=-1).mean()
+             +  F.cosine_similarity(p2, z1.detach(), dim=-1).mean())
+```
+- Stress cluster selection by NDVI minimum across clusters: the cluster with lowest mean NDVI is labeled “stressed.”[5]
+```python
+means = [ndvi[cluster_map==k].mean() for k in range(4)]
+stress_idx = int(np.argmin(means))
+stress_map = (cluster_map == stress_idx).astype(np.uint8)
+```
+
+### Results obtained
+- Discovery metrics: 8.27% stressed area over the Jessore AOI with four clusters automatically identified from unlabeled scenes.[2][3]
+- Spectral validation: Stressed cluster shows $$ \mu_{\text{NDVI}}=0.42 $$, $$ \sigma_{\text{NDVI}}=0.08 $$, and $$ \mu_{\text{NDWI}}=0.22 $$, consistent with lower vigor and water content.[1]
+- Resolution and scale: 30 m processing scale for the demo’s Earth Engine constraints while retaining Sentinel‑2 spectral bands for reliable differentiation.[5]
+- Confidence: High—patterns are consistent across independent indices and robust under alternative tilings/augmentations.[3][1]
+
+### Meaning and decision relevance
+- Zero‑label discovery surfaces emergent agronomic risk without ground surveys, enabling earlier scouting, irrigation checks, and targeted agronomy at sub‑field resolution.[3][1]
+- Quantified stress percent provides a planning KPI for procurement, logistics, and insurance partners to anticipate yield shortfalls and trigger interventions.[4][3]
+- Embedding‑driven clusters enrich monitoring beyond a single index, isolating water bodies and bare soil to reduce false alerts and focus attention.[3][1]
+
+### Technical briefs (what makes it work)
+- Self‑supervised invariances learned from augmented tiles transfer to unseen parcels, improving separability of subtle stress states with minimal compute.[5][1]
+- Multi‑index feature construction (NDVI, NDWI, moisture) injects plant physiology priors that stabilize clustering under illumination and soil‑background changes.[1][5]
+- Post‑hoc statistical labeling of clusters via NDVI minima yields an interpretable, auditable stress selection criterion.[3][5]
+
+### Operationalization and outputs
+- Deliverables: GeoTIFF stress masks, cluster rasters, and styled overlays plus a JSON report with stressed‑area %, cluster counts, and timestamps for dashboards.[2][4]
+- Integration: Earth Engine data pull → PyTorch SimSiam training → K‑Means clustering → vector/raster export with minimal manual supervision.[4][5]
+
+### Limitations and risks
+- Cloud and phenology: Optical reliance requires date windows with <15% cloud and comparable phenological stages for fair clustering.[5][1]
+- Domain shift: Crop rotations, varietal differences, and soil backgrounds can shift spectra; periodic re‑tiling and retraining mitigate drift.[3][1]
+- Scale trade‑off: 30 m demo scale reduces I/O cost but limits smallest detectable patches; production can revert to 10–20 m when quotas allow.[3][5]
+
+### Future scope
+- Temporal tracking: Monthly embeddings and delta‑clustering to measure stress trajectories and intervention effects.[3][1]
+- Yield linkage: Calibrate stress percent against harvest outcomes to estimate expected tonnes at risk per block.[4][3]
+- Alerts and APIs: Push notifications when stress share exceeds 10% or when stressed clusters expand week‑over‑week.[3][1]
+
+### References to assets and scripts (for the website)
+- Scripts: run_corrected_crop_demo.py (end‑to‑end pipeline), generate_crop_explainer.py (analysis grid), model_report_crop_ultimate.json (results).[2][4][5]
+- Reports/metadata: TECH‑CODEX crop section for architecture and metrics; HAWKEYE_CROP_COMPREHENSIVE_RESULTS.txt for narrative detail.[1][3]
+- Visuals (optional): jessore_rgb_preview and jessore_stress_overlay from the demo assets if you elect to include imagery on the page.[2][4]
+
+Sources
+[1] TECH-CODEX.md https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/f83f1660-7a22-445a-98bc-a3fbcc28adc9/TECH-CODEX.md
+[2] model_report_crop_ultimate.json https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/e475169b-ab32-4159-807e-2a19f8e2685b/model_report_crop_ultimate.json
+[3] HAWKEYE_CROP_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/e8a814ed-27f3-4949-9efd-2a12a4a76be3/HAWKEYE_CROP_COMPREHENSIVE_RESULTS.txt
+[4] crop_demo_final_summary.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/08d550bd-582b-4832-bfde-8aaae3e10939/crop_demo_final_summary.txt
+[5] run_corrected_crop_demo.py https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/6e1d045f-06cf-42ef-80f2-c8454c0ab39c/run_corrected_crop_demo.py
