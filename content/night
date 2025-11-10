@@ -1,0 +1,123 @@
+Here is the complete, website‑ready technical report content for the Nightlights (Urban Economic Intelligence) demo, structured for a technical audience with both qualitative and quantitative detail.[1]
+
+### Summary
+HAWKEYE Nightlights Intelligence uses VIIRS DNB monthly composites as a real‑time proxy for economic activity, achieving a 0.88 correlation with historical GDP and showing +10.4% year‑over‑year radiance growth in Dhaka (2024: 23.75 vs 2023: 21.53).[2]
+The pipeline standardizes and denoises nightlight radiance, aligns it with macroeconomic series, and nowcasts GDP in near real‑time to eliminate quarterly lag in official releases.[1]
+
+### Scope of project
+Build a robust, operational GDP nowcasting signal from satellite nightlights that updates monthly, scales city‑ and district‑level, and integrates into a multi‑domain Urban Intelligence stack for planning and policy evaluation.[2]
+Primary geographical focus is Dhaka, Bangladesh (2022–2025), with generalization to other cities supported by the same VIIRS DNB compositing and normalization routines.[2]
+
+### Intention and objectives
+- Convert VIIRS nightlight radiance into a calibrated, interpretable, and statistically validated economic indicator usable for nowcasting GDP and tracking urban economic “metabolism.”[2]
+- Fuse the indicator with health and environmental signals in a standardized feature space to support multi‑objective urban planning, resource allocation, and intervention timing.[1]
+
+### Datasets used
+- VIIRS Nighttime Lights: NOAA DNB monthly composites (avg_rad in nW/cm²/sr) at ~500 m resolution for spatially aggregated economic activity.[1]
+- GDP and macro indicators: Annual GDP, inflation, and trade series for correlation, scaling, and policy‑aware interpretation.[2]
+- Auxiliary context: Weather and demographics for confounder checks and partial correlation tests during validation.[2]
+
+### Variables targeted
+- Nightlight radiance metrics: Monthly mean/median/trimmed mean and high‑quantile (p90/p95) radiance aggregated over AOIs.[1]
+- Economic targets: Annual GDP levels and growth, with derived monthly nowcasts and uncertainty bounds based on nightlights dynamics.[2]
+
+### Method and pipeline
+- Ingestion and gridding: Load monthly VIIRS composites, clip to AOI, mask stray light/cloud artifacts, and compute robust aggregate statistics.[1]
+- Normalization and denoising: Z‑score or min‑max scaling across time per AOI, with trimmed means to suppress outliers and lunar contamination residuals.[1]
+- Alignment and modeling: Align monthly nightlights with GDP via log‑log regression and elastic regularization; validate stability and compute nowcasts with uncertainty.[2]
+
+### Key processing rules
+- Spatial aggregation: Prefer trimmed mean of pixels within the AOI to reduce flare and gas‑flare outliers while preserving trend sensitivity.[1]
+- Temporal smoothing: Apply 3‑month centered moving average when seasonal electrical load confounds diurnal patterns, retaining raw series for lead/lag testing.[1]
+- Confounder checks: Partial correlations controlling for rainfall/temperature to ensure radiance trends reflect economic activity rather than weather artifacts.[2]
+
+### Modeling framework
+- Correlation and regression: Establish baseline correlation $$ r=0.88 $$ between aggregated nightlights and GDP, then fit a log‑log model $$ \log(\text{GDP}) = \beta_0 + \beta_1\log(\text{NL}) + \epsilon $$.[2]
+- Nowcasting: Convert monthly nightlights changes into continuous GDP growth estimates with bootstrap confidence intervals and rolling recalibration each quarter.[2]
+- Multi‑signal fusion: Integrate nightlights with other urban indicators (e.g., inflation/trade) in gradient‑boosted regressors for sensitivity tests and robustness checks.[1]
+
+### Core formulas
+- Year‑over‑year growth: $$ \text{YoY} = \frac{\text{NL}_{t} - \text{NL}_{t-12}}{\text{NL}_{t-12}} \times 100 $$, yielding +10.4% radiance growth in 2024.[2]
+- Pearson correlation: $$ r = \frac{\sum (x-\bar{x})(y-\bar{y})}{\sqrt{\sum (x-\bar{x})^2}\sqrt{\sum (y-\bar{y})^2}} = 0.88 $$ for nightlights vs GDP.[2]
+- Log‑log regression: $$ \log(\text{GDP}) = \beta_{0} + \beta_{1}\log(\text{NL}) + \epsilon $$, with $$\beta_1$$ interpreted as elasticity of GDP w.r.t. radiance.[2]
+
+### Python script snippets (illustrative)
+- VIIRS preprocessing and aggregation:
+```python
+# viirs_monthly is xarray/raster stack; aoi is polygon
+arr = viirs_monthly.sel(time=slice("2022-01","2025-12"))
+clipped = arr.rio.clip([aoi], all_touched=True, drop=True)
+nl = clipped.where(clipped>0).where(clipped<200)  # basic mask
+monthly_trimmed = nl.reduce(np.nanmean, dim=("x","y"))
+# 10% trim example (vectorized):
+def trimmed_mean(v, p=0.1):
+    w = np.sort(v[~np.isnan(v)])
+    k = int(len(w)*p)
+    return w[k:len(w)-k].mean() if len(w)>2*k else np.nan
+```
+
+- Correlation and log‑log regression:
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+gdp_log = np.log(gdp.values)
+nl_log  = np.log(monthly_trimmed.resample(time="A").mean().values)  # annualized
+r = np.corrcoef(nl_log, gdp_log)[0,1]  # ~0.88
+
+X = nl_log.reshape(-1,1); y = gdp_log
+model = LinearRegression().fit(X, y)
+beta1 = model.coef_[0]  # elasticity
+```
+
+- Monthly nowcasting with uncertainty:
+```python
+# Map monthly NL changes to GDP growth nowcasts via rolling regression
+window = 36
+nowcasts = []
+for t in range(window, len(nl_series)):
+    Xw = np.log(nl_series[t-window:t]).reshape(-1,1)
+    yw = gdp_growth_annualized[t-window:t]
+    m = LinearRegression().fit(Xw, yw)
+    y_hat = m.predict(np.log(nl_series[t]).reshape(1,-1))[0]
+    nowcasts.append(y_hat)
+```
+
+### Results obtained
+- Economic proxy strength: Nightlights–GDP correlation $$ r=0.88 $$ confirms radiance as a strong proxy for economic activity in Dhaka.[2]
+- Growth signal: Nightlight radiance increased +10.4% YoY, with 2024 aggregate 23.75 vs 21.53 in 2023, indicating broad‑based activity gains.[2]
+- Data quality: 1,105 temporal records across 36 features with only 0.16% missing data in the fused urban dataset, enabling robust validation.[3]
+
+### Meaning and decision relevance
+- Near‑real‑time nowcasting: Monthly updates provide a leading view on economic momentum, useful for budget adjustments, stimulus timing, and infrastructure phasing.[2]
+- Spatial planning: Radiance gradients highlight growth corridors and under‑served zones for targeting utilities, transit, and safety interventions.[1]
+- Policy evaluation: Pre/post interventions can be assessed via radiance deltas, offering a rapid, independent check on economic impact.[2]
+
+### Technical briefs (what makes it work)
+- Robust aggregation: Trimmed means and masking reduce flare and outlier contamination, stabilizing the relationship against artifact noise.[1]
+- Elastic scaling: Log‑log specification captures multiplicative growth and scale‑free relationships between economic output and radiance.[2]
+- Multi‑domain controls: Incorporating weather and demographics during validation reduces spurious correlations and improves transferability.[2]
+
+### Operationalization and outputs
+- Deliverables: Monthly AOI‑level time series (CSV/Parquet), annualized radiance indices, GDP nowcasts with confidence bands, and district‑level choropleths.[2]
+- Integration: Batch job updates nightlights indices monthly; nowcasts are published to the Urban Intelligence dashboard API alongside health and climate layers.[1]
+
+### Limitations and risks
+- Non‑economic radiance: Lighting policy changes, outages, or festive spikes can distort signals; smoothing and anomaly flags mitigate but do not eliminate risk.[1]
+- Spatial bias: Affluent areas may be over‑lit while informal economies are under‑lit, requiring supplemental indicators for equity‑aware analysis.[2]
+- Transferability: Elasticities may differ across cities; rolling recalibration is required when applying models to new geographies.[2]
+
+### Future scope
+- Sectoral disaggregation: Combine nightlights with land‑use to attribute growth to industrial, commercial, or residential segments.[1]
+- Real‑time feeds: Ingest higher‑frequency proxies (mobile mobility, POS data) to refine intra‑month nowcasts and shock detection.[2]
+- Policy sandboxes: Run counterfactuals (e.g., tariff or curfew changes) and evaluate expected radiance and GDP impacts via structural models.[2]
+
+### References to assets and scripts (for the website)
+- Reports/metadata: HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt (results, correlations), hawkeye_v4_analysis_report.json (data summary, correlations, forecasts).[3][2]
+- Technical brief: TECH‑CODEX Urban section (data fusion, sources, processing, modeling, outputs).[1]
+- Optional visuals: Nightlights radiance layers (2022, 2025) for contextual thumbnails if images are desired later.[1]
+
+Sources
+[1] TECH-CODEX.md https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/f83f1660-7a22-445a-98bc-a3fbcc28adc9/TECH-CODEX.md
+[2] HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/21d7cd2e-6d39-4344-a0cb-922d0c928811/HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt
+[3] hawkeye_v4_analysis_report.json https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/12db8ef9-8547-48ce-9432-a835417b5257/hawkeye_v4_analysis_report.json
