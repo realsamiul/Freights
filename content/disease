@@ -1,0 +1,110 @@
+Here is the complete, website‑ready technical report content for the Disease (Dengue Early‑Warning) demo, matching the accepted structure and depth.[1]
+
+### Summary
+HAWKEYE Disease Intelligence fuses epidemiology, weather, demographics, and satellite context to forecast dengue with 7‑day MAPE of 9.8% for Dhaka while revealing a strong urban metabolism link via nightlights, enabling policy actions up to two weeks in advance.[2]
+The system integrates 30+ datasets with rigorous preprocessing and delivers nowcasts, risk maps, and intervention windows as API outputs for health operations centers.[2]
+
+### Scope of project
+Provide city‑scale dengue incidence forecasts and risk alerts with weekly cadence, operationalized for Dhaka (2022–2025), and designed for replication across districts through standardized data adapters and harmonized feature schemas.[2]
+The deployment pairs statistical forecasting with causal signal analysis to keep models interpretable and resilient to shifting data quality across municipal sources.[1]
+
+### Intention and objectives
+- Deliver reliable 7‑day dengue forecasts and risk tiers that drive resource allocation, vector control scheduling, and clinical surge planning.[2]
+- Quantify leading indicators (temperature, rainfall, humidity, radiance) and produce defensible explanations for public‑health briefings and after‑action reviews.[1]
+
+### Datasets used
+- Health surveillance: Weekly dengue case counts and population‑normalized rates compiled for Dhaka wards and aggregates.[2]
+- Environmental: Daily temperature, humidity, rainfall, and pressure used as lagged regressors for vector ecology dynamics.[2]
+- Geospatial: VIIRS nightlights radiance as an urban activity proxy and mobility surrogate; satellite basemaps for optional cartographic context.[2]
+- Administrative and demographics: Ward boundaries and population density layers for normalization and targeting.[2]
+- Data coverage and quality: 1,105 temporal records, 36 fused features, 0.16% missing data after harmonization.[3]
+
+### Variables targeted
+- Targets: Weekly dengue cases and incidence per 100k population to stabilize across demographic differences.[2]
+- Predictors: Lagged weather covariates, nightlights aggregates, month/seasonality flags, and holiday/behavioral proxies where available.[2]
+
+### Method and pipeline
+- Ingestion and QA: Standardize sources, fix calendar alignments, forward‑fill short gaps under strict caps, and verify monotonic ward aggregations for totals.[2]
+- Feature engineering: Create 7–28‑day lags for temperature, humidity, and rainfall, plus rolling means and anomalies; aggregate nightlights monthly and align to epidemiological weeks.[2]
+- Forecasting layer: Prophet‑based univariate core with exogenous regressors where supported, backed by gradient‑boosted tabular models for sensitivity and ablation analysis.[2]
+
+### Key signals and lags
+- Temperature→Dengue: Pearson $$ r=0.324 $$ with 14‑day lag, $$ p\ll 0.001 $$, consistent with vector development cycles.[3]
+- Socio‑economic modulation: Nightlights as activity proxy correlates strongly with GDP $$ r=0.88 $$, informing contact patterns and exposure risk in urban cores.[2]
+- Data sufficiency: 36 features with low missingness enable robust cross‑validation and ablation checks on dominant drivers.[3]
+
+### Modeling framework
+- Forecast core: Prophet with weekly seasonality, holiday effects where available, and tuned changepoint prior; exogenous covariates engineered as lags and anomalies.[2]
+- Benchmark ensemble: Gradient boosting (XGBoost/LightGBM) for tabular regressions on lagged features to verify stability and capture nonlinearities.[1]
+- Early‑warning horizon: Policy window up to 14 days to stage spraying, larval source reduction, and ward staffing changes.[1]
+
+### Core formulas
+- Mean Absolute Percentage Error: $$ \text{MAPE} = \frac{100}{N}\sum_{t=1}^{N}\left|\frac{y_{t}-\hat{y}_{t}}{y_{t}}\right| $$, primary evaluation at 7‑day horizon. [2]  
+- Lagged covariance check: $$ \text{Corr}\big(T_{t-14},\,\text{Dengue}_{t}\big)=0.324 $$ validating thermal lead against cases.[3]
+- Growth rate week‑over‑week: $$ g_{t} = \frac{y_{t}-y_{t-1}}{y_{t-1}} $$ used for surge detection and thresholded alerting.[2]
+
+### Python script snippets (illustrative)
+- Lag feature construction and merges:
+```python
+df["temp_lag_14"] = df["temp"].shift(14)
+df["hum_lag_14"]  = df["humidity"].shift(14)
+df["rain_lag_14"] = df["rain"].shift(14)
+df["nl_month"]    = nightlights.resample("W").mean().reindex(df.index, method="ffill")
+features = ["temp_lag_14","hum_lag_14","rain_lag_14","nl_month"]
+```
+
+- Prophet with weekly seasonality and regressors:
+```python
+m = Prophet(weekly_seasonality=True, yearly_seasonality=True)
+for col in features:
+    m.add_regressor(col, standardize=True)
+fit = m.fit(df.rename(columns={"cases":"y","date":"ds"}))
+forecast = m.predict(df_future)  # 7-day horizon
+```
+
+- Gradient boosting benchmark:
+```python
+X = df[features].shift(1).dropna()
+y = df["cases"].loc[X.index]
+model = xgb.XGBRegressor(max_depth=6, n_estimators=400, learning_rate=0.05)
+model.fit(X, y)
+yhat = model.predict(df_future[features])
+```
+
+### Results obtained
+- Forecast accuracy: 7‑day MAPE $$=9.8\%$$ on Dhaka, meeting decision‑grade thresholds for weekly operational planning.[2]
+- Leading indicators: Statistically significant temperature→dengue link at 14‑day lag $$ r=0.324 $$ with $$ N=1105 $$, $$ p\ll 0.001 $$.[3]
+- Data integrity: Fused urban dataset exhibits 0.16% missingness, enabling stable training and fewer imputations.[3]
+
+### Meaning and decision relevance
+- A sub‑10% 7‑day MAPE allows ward‑level resource staging, outpatient staffing changes, and targeted vector control before peak incidence weeks.[2]
+- Causal‑consistent thermal lag supports public guidance on heat/rainfall vigilance windows and aligns with entomological cycles for intervention timing.[3]
+- Nightlights‑informed context connects activity intensity with exposure risk, guiding surveillance routing toward likely transmission corridors.[2]
+
+### Technical briefs (what makes it work)
+- Harmonized lags and anomalies convert noisy weather streams into biologically meaningful regressors while preserving interpretability.[2]
+- Dual‑track modeling (Prophet + boosted trees) provides both transparent baselines and non‑linear capture for robustness under changing behaviors.[1]
+- Low missingness and consistent ward delineations reduce label noise and improve week‑ahead stability.[3]
+
+### Operationalization and outputs
+- Deliverables: Weekly nowcasts with 80/95% intervals, ward risk tiers, surge alerts, and feature attributions for briefing decks and dashboards.[2]
+- Integration: Batch ETL refreshes sources weekly and publishes forecasts and risks to the Urban Intelligence API and Vercel dashboards.[1]
+
+### Limitations and risks
+- Reporting artifacts: Case backlog dumps and testing policy shifts can transiently break stationarity; outlier detection and robust losses mitigate but do not remove risk.[2]
+- Exogenous shocks: Mobility restrictions or blackouts alter transmission dynamics; models require rapid recalibration using recent windows.[2]
+- Transferability: Elasticities and optimal lags vary by microclimate; city‑specific validation is required when scaling nationally.[2]
+
+### Future scope
+- Entomological integration: Fuse mosquito trap counts and vector suitabilities for mechanistic hybrid models.[1]
+- Spatial diffusion: Graph‑based spillover modeling between wards using mobility or road‑network priors.[2]
+- Active monitoring: Alerting when thermal/rainfall precursors cross city‑specific thresholds to trigger pre‑emptive operations.[2]
+
+### References to assets and scripts (for the website)
+- Reports/metadata: HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt (methods, accuracy), hawkeye_v4_analysis_report.json (correlations, data quality).[3][2]
+- Technical brief: TECH‑CODEX Urban section (stack, data fusion, operational notes).[1]
+
+Sources
+[1] TECH-CODEX.md https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/f83f1660-7a22-445a-98bc-a3fbcc28adc9/TECH-CODEX.md
+[2] HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/21d7cd2e-6d39-4344-a0cb-922d0c928811/HAWKEYE_URBAN_V4_COMPREHENSIVE_RESULTS.txt
+[3] hawkeye_v4_analysis_report.json https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/12db8ef9-8547-48ce-9432-a835417b5257/hawkeye_v4_analysis_report.json
