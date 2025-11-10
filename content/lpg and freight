@@ -1,0 +1,168 @@
+Here are the complete, website‑ready technical report contents for the LPG Demand and Freight Rates demos, matching the accepted structure and depth.[1]
+
+### LPG — Summary
+HYPERION LPG Demand Forecasting converts monthly national consumption data into accurate, seasonality‑aware forecasts using XGBoost, capturing long‑term upward trend and predictable annual cycles for planning and inventory optimization.[2]
+The pipeline standardizes inputs, engineers temporal/seasonal features, validates via time‑series CV and holdout evaluation, and outputs monthly demand with confidence bands for production and logistics scheduling.[2]
+
+### LPG — Scope of project
+Provide repeatable, reliable monthly LPG demand forecasts at national scale, optimized for annual budgeting, inventory right‑sizing, and refinery run‑planning with minimal maintenance overhead.[2]
+The workflow targets clean ingestion, robust feature design (trend, seasonality, lags), and operational artifacts (CSV forecasts, model configs, feature importance, and monitoring hooks).[2]
+
+### LPG — Intention and objectives
+- Deliver defensible monthly forecasts that resolve trend and seasonal structure for production, pricing, and stock decisions.[2]
+- Reduce waste and stockouts by aligning inbound supply and storage with anticipated demand cycles across the year.[2]
+
+### LPG — Datasets used
+- Monthly LPG consumption series from national energy statistics agencies, with validation and outlier screening prior to modeling.[1]
+- Temporal covariates derived from calendar metadata, including month, quarter, and Fourier seasonal terms; optional weather proxies where available.[1]
+
+### LPG — Variables targeted
+- Target: Monthly LPG volume (national aggregate), optionally normalized per‑capita for structural comparability.[2]
+- Predictors: Time index, seasonal Fourier bases, trend terms, and lagged consumption features at 1, 3, 6, and 12 months.[1]
+
+### LPG — Method and pipeline
+- Preprocessing: Normalize, align, and validate monthly series; apply outlier detection and imputation rules only under tight thresholds.[2]
+- Feature engineering: Concatenate trend, seasonal, and lagged terms to expose multi‑scale dynamics to tree‑based learners.[1]
+- Modeling: XGBoost trained with time‑series CV and final evaluation on a recent holdout to confirm generalization prior to deployment.[2]
+
+### LPG — Core formulas
+- Fourier seasonality (annual): $$ s_{k}(t) = a_{k}\sin\left(\frac{2\pi kt}{12}\right) + b_{k}\cos\left(\frac{2\pi kt}{12}\right) $$ with small $$k$$ for smooth cycles.[1]
+- MAPE: $$ \text{MAPE} = \frac{100}{N}\sum_{t=1}^{N}\left|\frac{y_{t}-\hat{y}_{t}}{y_{t}}\right| $$ as a primary interpretability metric for monthly demand. [1]  
+- RMSE: $$ \text{RMSE} = \sqrt{\frac{1}{N}\sum_{t=1}^{N}(y_{t}-\hat{y}_{t})^{2}} $$ for absolute error benchmarking.[1]
+
+### LPG — Python snippets
+- Feature construction (trend, seasonality, lags) and XGBoost fit:[1]
+```python
+t = np.arange(len(y))
+month = pd.Series(index=y.index, data=y.index.month)
+# Fourier seasonality
+k = 2
+S = []
+for j in range(1, k+1):
+    S.append(np.sin(2*np.pi*j*t/12))
+    S.append(np.cos(2*np.pi*j*t/12))
+fourier = np.vstack(S).T
+# Lags
+X = pd.DataFrame({"t": t, "month": month})
+for L in [1,3,6,12]:
+    X[f"y_lag_{L}"] = y.shift(L)
+X = X.join(pd.DataFrame(fourier, index=y.index).add_prefix("f"))
+X_train, y_train = X.dropna(), y.loc[X.dropna().index]
+model = xgb.XGBRegressor(max_depth=6, n_estimators=200, learning_rate=0.05)
+model.fit(X_train, y_train)
+```
+
+### LPG — Results obtained
+- Fit quality: Strong correlation between actual and predicted consumption with robust holdout performance and consistent annual seasonality captured.[2]
+- Business readiness: Forecasts ship with confidence intervals, feature importance, and configuration for retraining and monitoring.[2]
+
+### LPG — Meaning and decision relevance
+- Translating seasonality and trend into forward signals allows right‑sizing inventory, smoothing refinery schedules, and stabilizing cash‑flow planning.[2]
+- Operational visibility reduces overstock/stockout risk during peak‑demand months and supports price and promotion calendars.[2]
+
+### LPG — Technical briefs
+- XGBoost’s non‑linear splits capture interactions between lags and seasonal bases that linear models often miss, while remaining controllable via regularization.[1]
+- Time‑series cross‑validation and holdout evaluation protect against regime‑specific overfitting before monthly production release.[2]
+
+### LPG — Operationalization and outputs
+- Deliverables: Monthly forecast CSV/Parquet with intervals, model artifacts, feature importance, and validation reports for governance.[2]
+- Integration: Batch retrain and monthly publish to dashboard/API with monitoring hooks for drift and error thresholds.[2]
+
+### LPG — Limitations and risks
+- Structural shifts (policy, subsidies, shocks) can change elasticities; monitoring and rapid recalibration are mandatory.[2]
+- Data quality and latency limit horizon extension; uncertainty bands expand meaningfully beyond a few quarters.[2]
+
+### LPG — Future scope
+- Regional disaggregation, price elasticity modeling, and weather‑sensitive variants for cold‑snap scenarios.[1]
+- Multi‑product extension (CNG/diesel/gasoline) on the same feature scaffolding and production pipeline.[1]
+
+### LPG — References to assets and scripts
+- Reports/meta HYPERION_LPG_COMPREHENSIVE_RESULTS.txt (methods, outputs), TECH‑CODEX LPG section (features, training, scope).[1][2]
+
+
+### Freight — Summary
+HYPERION Freight Forecasting achieves 7‑day R² of 0.70 and MAE of 611 USD/TEU on Far East→US West Coast rates by leveraging a proprietary Trade Imbalance Ratio feature and time‑series validated gradient‑boosted models.[3]
+The system produces 7/14/30‑day forecasts, with 14‑day R² of 0.50 for operational planning and 30‑day directional guidance, all backed by a foundry of benchmarked algorithms and rigorous backtesting.[3]
+
+### Freight — Scope of project
+Provide lane‑specific short‑ and mid‑term freight rate forecasts that support procurement timing, contract negotiation, and risk hedging under volatile market regimes.[3]
+Focus on robust out‑of‑sample performance and explainability via feature importance and domain‑grounded indicators rather than opaque black‑box signals.[3]
+
+### Freight — Intention and objectives
+- Move from reactive price‑taking to proactive strategy using defensible, horizon‑specific forecasts and early‑warning indicators.[3]
+- Codify domain intuition (capacity tension, fuel, demand imbalances) into predictive features with strict leakage controls.[3]
+
+### Freight — Datasets used
+- Lane rates: Far East→US West Coast and reciprocal lane (eastbound/westbound) for imbalance measures, daily since 2018.[3]
+- Market proxies: Dry bulk index proxy and Brent fuel prices to capture capacity and cost dynamics across macro conditions.[3]
+
+### Freight — Variables targeted
+- Targets: Daily USD/TEU rates at 7/14/30‑day horizons; evaluation on R² and MAE with time‑series splits.[3]
+- Predictors: Lagged rates (1/7/14/30), fuel and index lags, and the Trade Imbalance Ratio and its lags to encode capacity tension.[3]
+
+### Freight — Method and pipeline
+- Feature engineering: Compute FEUW/UWFE ratio and multi‑lag stacks; exclude contemporaneous target to prevent leakage.[3]
+- Model foundry: Ridge, Random Forest, LightGBM, XGBoost, and CatBoost benchmarked per horizon with backtesting and holdout.[3]
+- Selection: XGBoost champions 7‑day; LightGBM strong on 14‑day; ensemble diagnostics retained.[3]
+
+### Freight — Key signals
+- Trade Imbalance Ratio $$ \text{TIR} = \frac{\text{FEUW}}{\text{UWFE}} $$: higher values precede rate spikes when eastbound demand dominates return capacity.[3]
+- Market and fuel lags transmit macro and cost pressures; lane‑specific lags capture momentum and mean‑reversion.[3]
+
+### Freight — Core formulas
+- R²: $$ R^{2} = 1 - \frac{\sum (y-\hat{y})^{2}}{\sum (y-\bar{y})^{2}} $$, primary variance‑explanation metric for horizon benchmarking.[3]
+- MAE: $$ \text{MAE} = \frac{1}{N}\sum |y-\hat{y}| $$, procurement‑aligned error in USD/TEU. [3]  
+- Trade Imbalance Ratio: $$ \text{TIR}_{t} = \frac{\text{FEUW}_{t}}{\text{UWFE}_{t}} $$, with lag features $$ \text{TIR}_{t-L} $$.[3]
+
+### Freight — Python snippets
+- Feature assembly with ratio and lags:[3]
+```python
+df["tir"] = df["feuw"]/df["uwfe"]
+lags = [1,7,14,30]
+for col in ["feuw","uwfe","bdi_proxy","brent","tir"]:
+    for L in lags:
+        df[f"{col}_lag_{L}"] = df[col].shift(L)
+features = [c for c in df.columns if "lag_" in c]
+```
+- XGBoost training and evaluation (7‑day):[3]
+```python
+X = df[features].iloc[:-7].dropna()
+y = df["feuw"].shift(-7).iloc[:-7].loc[X.index]
+model = xgb.XGBRegressor(max_depth=6, n_estimators=400, learning_rate=0.05)
+model.fit(X, y)
+yhat = model.predict(X_test)
+r2 = r2_score(y_test, yhat); mae = mean_absolute_error(y_test, yhat)
+```
+
+### Freight — Results obtained
+- 7‑day: $$ R^{2}=0.70 $$, $$ \text{MAE}=611 $$ USD/TEU; 14‑day: $$ R^{2}=0.50 $$; 30‑day: directional guidance under higher uncertainty.[3]
+- Data coverage: 2,698 daily records processed with real‑time pipeline hooks and automated QC for production readiness.[3]
+
+### Freight — Meaning and decision relevance
+- Forecasts enable rate‑lock timing, spot vs. contract trade‑offs, and budget sensitivity analysis ahead of volatility bursts.[3]
+- TIR provides interpretable, lane‑physics‑aligned signal that generalizes across regimes better than naive momentum alone.[3]
+
+### Freight — Technical briefs
+- Time‑series splits and leakage controls are enforced; horizon‑specific champions avoid one‑size‑fits‑all degradation.[3]
+- Tree ensembles capture nonlinear interactions among fuel, macro proxies, and lane imbalances while retaining feature attributions.[1]
+
+### Freight — Operationalization and outputs
+- Deliverables: 7/14/30‑day forecasts (CSV), confidence, feature importance, and backtesting reports for governance.[3]
+- Integration: Live ingestion, automated serving, monitoring for regime breaks, and alerting when predicted spikes exceed thresholds.[3]
+
+### Freight — Limitations and risks
+- Structural regime shifts or data feed issues require prompt recalibration; accuracy diminishes beyond 30‑day horizons.[3]
+- Market microstructure changes can modify TIR elasticities; periodic re‑estimation preserves edge.[3]
+
+### Freight — Future scope
+- Multi‑lane expansion (EU–Asia, Trans‑Pacific variants), real‑time API, and contract optimization decision support.[3]
+- Alerting and what‑if simulators for fuel shock or capacity‑shock scenarios using stress‑tested ensembles.[3]
+
+### Freight — References to assets and scripts
+- Reports/meta HYPERION_FREIGHT_COMPREHENSIVE_RESULTS.txt (methods, metrics), TECH‑CODEX Freight section (features, validation, outputs).[1][3]
+
+Sources
+[1] TECH-CODEX.md https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/f83f1660-7a22-445a-98bc-a3fbcc28adc9/TECH-CODEX.md
+[2] HYPERION_LPG_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/16d83194-36bd-4af0-97c6-a8d16c980501/HYPERION_LPG_COMPREHENSIVE_RESULTS.txt
+[3] HYPERION_FREIGHT_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/746ee52f-72ac-423c-9ff1-56ca7fb29369/HYPERION_FREIGHT_COMPREHENSIVE_RESULTS.txt
+[4] HYPERION_FREIGHT_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/5badc232-64ac-437b-bf51-06af8bc9632e/HYPERION_FREIGHT_COMPREHENSIVE_RESULTS.txt
