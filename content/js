@@ -1,0 +1,340 @@
+// script.js - Lenis + GSAP + ScrollTrigger (defensive, production-ready)
+// Minimal fullscreen menu option (A): crisp fade + subtle scale
+
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Defensive library checks ---
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+        console.error('GSAP and/or ScrollTrigger not found. Advanced scroll/anim features disabled.');
+        return;
+    }
+    if (typeof Lenis === 'undefined') {
+        console.error('Lenis not found. Smooth-scroll disabled.');
+        return;
+    }
+
+    // Register GSAP plugin
+    gsap.registerPlugin(ScrollTrigger);
+
+    // --- Safe scroll-container creation (do not move script tags) ---
+    if (!document.querySelector('.scroll-container')) {
+        const scrollContainer = document.createElement('div');
+        scrollContainer.className = 'scroll-container';
+
+        // Move element children (skip SCRIPT elements) into container
+        const nodes = Array.from(document.body.children);
+        nodes.forEach(node => {
+            if (node.tagName !== 'SCRIPT') {
+                scrollContainer.appendChild(node);
+            }
+        });
+
+        // Insert at top of body so scripts remain accessible
+        document.body.insertBefore(scrollContainer, document.body.firstChild);
+    }
+
+    const scrollContainer = document.querySelector('.scroll-container');
+
+    // --- Initialize Lenis safely ---
+    const lenis = new Lenis({
+        wrapper: window,
+        content: scrollContainer,
+        duration: 1.0,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        direction: 'vertical',
+        gestureDirection: 'vertical',
+        smooth: true,
+        mouseMultiplier: 1,
+        smoothTouch: false,
+        touchMultiplier: 2,
+        infinite: false,
+        autoResize: true
+    });
+    window.lenis = lenis;
+
+    // --- RAF loop (defensive) ---
+    (function startRaf() {
+        function raf(time) {
+            try {
+                if (window.lenis && typeof window.lenis.raf === 'function') {
+                    window.lenis.raf(time);
+                }
+            } catch (err) {
+                console.warn('Lenis RAF error:', err);
+            }
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+    })();
+
+    // --- ScrollTrigger scroller proxy wired to the actual scroll container ---
+    // Provide robust getter/setter returning numbers only
+    ScrollTrigger.scrollerProxy(scrollContainer, {
+        scrollTop(value) {
+            if (arguments.length) {
+                // setter: jump immediately (no animation)
+                if (window.lenis && typeof window.lenis.scrollTo === 'function') {
+                    window.lenis.scrollTo(Number(value), { immediate: true });
+                } else {
+                    scrollContainer.scrollTop = Number(value);
+                }
+                return;
+            }
+            // getter: prefer numeric lenis value
+            if (window.lenis) {
+                if (typeof window.lenis.scroll === 'number') return window.lenis.scroll;
+                if (typeof window.lenis.scrollTop === 'number') return window.lenis.scrollTop;
+            }
+            return scrollContainer.scrollTop || 0;
+        },
+        getBoundingClientRect() {
+            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+        },
+        // Use transform pinning when supported
+        pinType: scrollContainer.style.transform ? 'transform' : 'fixed'
+    });
+
+    // Sync updates
+    if (typeof lenis.on === 'function') lenis.on('scroll', ScrollTrigger.update);
+    ScrollTrigger.addEventListener('refresh', () => { if (typeof lenis.resize === 'function') lenis.resize(); });
+    ScrollTrigger.refresh();
+
+    // --- Reduced motion handling ---
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        gsap.globalTimeline.pause();
+        ScrollTrigger.disable();
+    }
+
+    // --- Resize handling (debounced) ---
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (window.lenis && typeof window.lenis.resize === 'function') lenis.resize();
+            ScrollTrigger.refresh();
+        }, 220);
+    }, { passive: true });
+
+    // --- Safe initializers (wrapped in try/catch to avoid whole-page failure) ---
+    setTimeout(() => {
+        try { initFullscreenMenu(); } catch (e) { console.warn('menu init failed', e); }
+        try { initScrollAnimations(); } catch (e) { console.warn('scroll anims init failed', e); }
+        try { initMetricAnimations(); } catch (e) { console.warn('metric anims init failed', e); }
+        try { enableSmoothAnchorScrolling(); } catch (e) { console.warn('anchor scroll init failed', e); }
+        try { initVideoBackgrounds(); } catch (e) { console.warn('video bg init failed', e); }
+        try { initMathJaxRefresh(); } catch (e) { console.warn('mathjax init failed', e); }
+    }, 80);
+
+    // Clean up on unload
+    window.addEventListener('beforeunload', () => {
+        try { ScrollTrigger.getAll().forEach(t => t.kill()); } catch (_) {}
+        if (window.lenis && typeof window.lenis.destroy === 'function') window.lenis.destroy();
+    });
+});
+
+/* ================= Minimal Fullscreen Menu (Option A - crisp fade + scale) ================= */
+function initFullscreenMenu() {
+    if (document.getElementById('fullscreenMenu')) return;
+
+    const menuHTML = `
+        <div class="fullscreen-menu" id="fullscreenMenu" aria-hidden="true">
+            <button class="menu-close" id="menuClose" aria-label="Close menu">
+                <span></span><span></span>
+            </button>
+            <div class="fullscreen-menu-content">
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/flood/">Flood Intelligence</a>
+                    <a href="/disease/">Disease Forecasting</a>
+                    <a href="/nightlights/">Nightlights Analysis</a>
+                    <a href="/crops/">Crop Monitoring</a>
+                    <a href="/lpg/">LPG Demand</a>
+                    <a href="/freights/">Freight Prediction</a>
+                </nav>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', menuHTML);
+
+    const menu = document.getElementById('fullscreenMenu');
+    const closeBtn = document.getElementById('menuClose');
+
+    // bottom nav replacement (if present) - minimal
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) {
+        bottomNav.innerHTML = `
+            <nav>
+                <a href="/" class="nav-logo">M0NARQ</a>
+                <button class="menu-trigger" id="menuTrigger" aria-label="Open menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </nav>
+        `;
+    }
+
+    const trigger = document.getElementById('menuTrigger');
+    const menuLinks = menu.querySelectorAll('a');
+
+    // small timeline for crisp open/close (fallback to simple class if GSAP fails)
+    const openMenu = () => {
+        menu.classList.add('active');
+        menu.setAttribute('aria-hidden', 'false');
+        try { 
+            if (window.lenis && typeof window.lenis.stop === 'function') window.lenis.stop();
+        } catch (e) { console.warn('lenis stop failed', e); }
+    };
+    const closeMenu = (navigateHref) => {
+        menu.classList.remove('active');
+        menu.setAttribute('aria-hidden', 'true');
+        try { 
+            if (window.lenis && typeof window.lenis.start === 'function') window.lenis.start();
+        } catch (e) { console.warn('lenis start failed', e); }
+        if (navigateHref) {
+            // small delay so the close transition completes
+            setTimeout(() => { window.location.href = navigateHref; }, 240);
+        }
+    };
+
+    if (trigger) {
+        trigger.addEventListener('click', (e) => { e.preventDefault(); openMenu(); });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => closeMenu());
+    }
+
+    menuLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (!href || href === '#') return;
+            e.preventDefault();
+            closeMenu(href);
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && menu.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+}
+
+/* ================= Simple scroll-activated fades (non-invasive) ================= */
+function initScrollAnimations() {
+    // fade-in elements
+    gsap.utils.toArray('.fade-in').forEach((el, i) => {
+        gsap.fromTo(el, { opacity: 0, y: 8 }, {
+            opacity: 1,
+            y: 0,
+            duration: 0.48,
+            ease: 'power2.out',
+            delay: i * 0.02,
+            scrollTrigger: {
+                trigger: el,
+                scroller: document.querySelector('.scroll-container'),
+                start: 'top 85%',
+                once: true
+            }
+        });
+    });
+
+    // headings & code blocks (same style)
+    gsap.utils.toArray('h1,h2,pre').forEach((el, i) => {
+        gsap.fromTo(el, { opacity: 0, y: 6 }, {
+            opacity: 1,
+            y: 0,
+            duration: 0.48,
+            ease: 'power2.out',
+            delay: i * 0.03,
+            scrollTrigger: {
+                trigger: el,
+                scroller: document.querySelector('.scroll-container'),
+                start: 'top 88%',
+                once: true
+            }
+        });
+    });
+}
+
+/* ================= Metric counter animations ================= */
+function initMetricAnimations() {
+    document.querySelectorAll('.metric-value').forEach(el => {
+        const raw = el.getAttribute('data-count');
+        const endValue = raw ? parseFloat(raw) : NaN;
+        const suffix = el.getAttribute('data-suffix') || '';
+        const hasDecimal = el.getAttribute('data-decimal') === 'true';
+        if (isNaN(endValue)) return;
+
+        // Use GSAP to tween a proxy value, then write pretty output
+        const proxy = { v: 0 };
+        gsap.to(proxy, {
+            v: endValue,
+            duration: 1.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: el,
+                scroller: document.querySelector('.scroll-container'),
+                start: 'top 80%',
+                once: true
+            },
+            onUpdate() {
+                const val = hasDecimal ? proxy.v.toFixed(1) : Math.round(proxy.v);
+                el.textContent = val + suffix;
+            }
+        });
+    });
+}
+
+/* ================= Smooth anchor scrolling via Lenis ================= */
+function enableSmoothAnchorScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', (e) => {
+            const href = anchor.getAttribute('href');
+            if (!href || !window.lenis) return;
+            const target = href === '#' ? null : document.querySelector(href);
+            e.preventDefault();
+            if (!target) {
+                window.lenis.scrollTo(0, { duration: 0.9 });
+            } else {
+                window.lenis.scrollTo(target, { duration: 0.9, offset: -80 });
+            }
+        });
+    });
+}
+
+/* ================= Video background handling (fallback) ================= */
+function initVideoBackgrounds() {
+    document.querySelectorAll('.video-bg').forEach(section => {
+        const video = section.querySelector('.bg-video');
+        const fallback = section.querySelector('.bg-fallback');
+        if (!video) return;
+        video.setAttribute('playsinline', '');
+        video.muted = true;
+        video.loop = true;
+
+        video.addEventListener('error', () => {
+            video.style.display = 'none';
+            if (fallback) fallback.style.display = 'block';
+        });
+
+        const p = video.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                video.style.display = 'none';
+                if (fallback) fallback.style.display = 'block';
+            });
+        }
+    });
+}
+
+/* ================= MathJax refresh (safe) ================= */
+function initMathJaxRefresh() {
+    if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise().then(() => {
+            setTimeout(() => ScrollTrigger.refresh(), 420);
+        }).catch(err => console.warn('MathJax typeset failed', err));
+    }
+}
