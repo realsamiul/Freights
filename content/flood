@@ -1,0 +1,116 @@
+Here is the complete, website-ready technical report content for the Flood Intelligence demo, structured for a technical audience with both qualitative and quantitative detail.
+
+### Summary
+HAWKEYE Flood Intelligence delivers 30‑minute, 10 m flood maps using SegFormer‑B2‑lite with physics‑informed pseudo‑labels, achieving 0.91 mIoU over a 15,000 km² Sylhet 2022 event workflow.[1][2]
+The pipeline fuses Sentinel‑1 VV radar, Sentinel‑2 optical bands, and SRTM slope to produce georeferenced flood extents, overlays, and probability heatmaps suitable for rapid response and damage estimation.[2][1]
+
+### Scope of project
+Operationalize near–real‑time flood extent mapping that reduces a 7‑day manual workflow to 30 minutes end‑to‑end (acquisition → inference → export), with 10 m resolution suitable for building‑ and road‑level situational awareness.[1][2]
+Primary AOI validated on Sylhet, Bangladesh (2022 event), designed for multi‑region scaling across Bangladesh, India, and Pakistan with Google Earth Engine ingestion.[2][1]
+
+### Intention and objectives
+- Replace manual digitization with automated, defensible, physics‑guided machine learning that remains robust under clouds and adverse weather via SAR.[1][2]
+- Deliver actionable GIS layers (extent polygons, confidence rasters) and overlays for government and insurance workflows within emergency response SLAs.[2][1]
+
+### Datasets used
+- Sentinel‑1 SAR (VV, pre/flood scenes), cloud‑penetrating, 10 m IW mode, revisit ~6 days.[1][2]
+- Sentinel‑2 optical (B2/B3/B4 RGB, B5/B8 red‑edge/NIR, B11/B12 SWIR), 10–20 m, revisit ~5 days.[2][1]
+- SRTM DEM 30 m with slope derivative for terrain normalization and flood‑susceptibility cues.[1][2]
+
+### Variables targeted
+- Pixel‑wise classes: flooded vs non‑flooded, exported as binary mask and probability map.[2][1]
+- Confidence/probability raster in  for thresholding and downstream risk scoring.[3][2]
+- Derived polygons for total inundated area and hydrologic connectivity checks.[2]
+
+### Method and pipeline
+- Multi‑modal fusion at pixel level: stack SAR VV, selected optical indices/bands, and slope, normalized to.[3][1][2]
+- Physics‑informed pseudo‑label generation (no human labels) followed by SegFormer‑B2‑lite training with cross‑entropy loss and early stopping.[1][2]
+- Inference yields class map and probability heatmap; post‑processing applies confidence thresholding, small‑blob removal, and vectorization to shapefiles.[2]
+
+### Key physical rules (pseudo‑labels)
+- SAR backscatter threshold: VV reflectance indicating open water $$ \text{VV} < 0.2 $$.[1][2]
+- Water index threshold: $$ \text{NDWI} = \frac{B3 - B8}{B3 + B8} > 0.1 $$.[1][2]
+- Low‑slope constraint: $$ \text{slope} < 0.05 $$ radians to attenuate false positives on steep terrain.[2][1]
+
+### Model architecture
+- SegFormer‑B2‑lite encoder–decoder: hierarchical Transformer encoder (MiT) with lightweight all‑MLP decoder; no positional encodings; efficient multi‑scale fusion.[1]
+- Training: 50 epochs, batch size 16, AdamW $$ \text{lr}=10^{-4} $$, random flip/rotate/crop augmentations.[1]
+
+### Core formulas
+- NDWI: $$ \text{NDWI} = \frac{G - NIR}{G + NIR} = \frac{B3 - B8}{B3 + B8} $$.[1]
+- IoU per class: $$ \text{IoU} = \frac{TP}{TP + FP + FN} $$; mIoU is mean across classes.[2]
+- Speed improvement: $$ \%\,\Delta t = \left(1 - \frac{0.5\,\text{hr}}{168\,\text{hr}}\right)\times 100 \approx 99.7\% $$.[2]
+
+### Python script snippets (illustrative)
+- Pseudo‑label fusion (rules → mask):
+```python
+mask_sar = (vv < 0.2).astype(np.uint8)  # SAR water signature
+ndwi = (b3 - b8) / (b3 + b8 + 1e-6)     # NDWI
+mask_ndwi = (ndwi > 0.1).astype(np.uint8)
+mask_slope = (slope < 0.05).astype(np.uint8)
+pseudo_mask = (mask_sar & mask_ndwi & mask_slope).astype(np.uint8)
+```
+
+- SegFormer fine‑tuning:
+```python
+model = SegFormerB2Lite(num_classes=2, in_chans=3)
+optim = torch.optim.AdamW(model.parameters(), lr=1e-4)
+for epoch in range(50):
+    for x, y in loader:
+        logits = model(x)                   # [B,2,H,W]
+        loss = F.cross_entropy(logits, y)   # pseudo-masks as targets
+        optim.zero_grad(); loss.backward(); optim.step()
+```
+
+- Inference and thresholding:
+```python
+with torch.no_grad():
+    prob = torch.softmax(model(x), dim=1)[:,1]  # flood class prob
+pred = (prob > 0.5).cpu().numpy().astype(np.uint8)
+```
+
+### Results obtained
+- Accuracy: mIoU $$=0.91$$ on validation imagery spanning Sylhet 2022, confirming high overlap between predicted flood and reference masks.[2][1]
+- Processing: 30 minutes total pipeline time (data pull → fused preprocessing → inference → export), replacing a 7‑day manual workflow.[1][2]
+- Coverage and resolution: 15,000 km² per analysis at 10 m pixel resolution, enabling dense, district‑scale operational mapping.[2][1]
+- False positives: Minimal (<5%), reflecting the discriminative benefit of SAR+NDWI+slope fusion under turbid water and cloud conditions.[1][2]
+- Artifacts: Probability heatmap, prediction overlay, binary mask, mIoU/loss curves, and shapefile exports for GIS systems.[4][5][2]
+
+### Meaning and decision relevance
+- A 0.91 mIoU at 10 m implies reliable parcel‑ and road‑level inundation delineation, making the outputs suitable for evacuation routing, relief staging, and logistics planning.[2]
+- The <5% false‑positive profile reduces wasted dispatches while preserving recall via SAR penetration in cloud‑covered scenes, critical during monsoon events.[2]
+- 30‑minute turnaround compresses the intelligence OODA loop, enabling earlier warnings and potentially thousands of lives saved in multi‑district events.[1][2]
+
+### Technical briefs (what makes it work)
+- Physics‑informed pseudo‑labeling eliminates annotation bottlenecks and aligns supervision with hydrology, improving generalization across regions and seasons.[1][2]
+- SegFormer’s hierarchical attention captures flood textures (smooth water bodies, shorelines) and contextual cues (valley floors), which classical CNNs or index‑thresholding miss.[1]
+- Multi‑modal fusion mitigates single‑sensor failure modes (e.g., optical cloud cover, SAR roughness over vegetation) by enforcing consensus across SAR, optics, and topography.[2][1]
+
+### Operationalization and outputs
+- Deliverables: GeoTIFF rasters (probability and class), vector flood polygons, styled overlays, and metrics JSON for dashboards and incident reports.[4][2]
+- Integration: Google Earth Engine pull → PyTorch inference service → GIS export; API‑ready for emergency ops centers.[2][1]
+
+### Limitations and risks
+- Latency and revisit: 5–6 day satellite cadence limits truly continuous coverage, though SAR dual‑satellite constellations mitigate gaps.[1]
+- Domain shift: Extreme specular returns, dense canopy, or urban canyons can bias SAR water signatures; slope/NDWI constraints reduce but do not eliminate risk.[2]
+- Compute/storage: Training requires GPU; region archives can exceed 1 TB/year, necessitating lifecycle policies.[1]
+
+### Future scope
+- Real‑time alerting: Hourly S1 ingestion with 30‑minute inference windows for streaming situational awareness.[1]
+- Damage modeling: Fuse with building footprints and land‑use to estimate exposed value and prioritize response corridors.[1]
+- Multi‑region scaling: Bangladesh–India–Pakistan concurrent processing with parameterized AOIs and auto‑retrains on new flood seasons.[1]
+
+### References to assets and scripts (for the website)
+- Scripts: 01_demo_data_pull.py (GEE acquisition), 02_demo_model_train.py (training/inference/export), generate_flood_explainer.py (grid).[5]
+- Reports/metadata: model_report_flood_ultimate.json, HAWKEYE_FLOOD_COMPREHENSIVE_RESULTS.txt, TECH‑CODEX sections.[4][2][1]
+- Visuals: prediction_overlay, prediction_heatmap, final_mask, loss_curve (already generated in the demo assets).[5][4]
+
+If you want the same report sections next for Crop, Urban, Freight, and LPG, say “continue,” and the remaining demos will be delivered in this exact format.[1]
+
+Sources
+[1] TECH-CODEX.md https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/f83f1660-7a22-445a-98bc-a3fbcc28adc9/TECH-CODEX.md
+[2] HAWKEYE_FLOOD_COMPREHENSIVE_RESULTS.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/613b0a07-d350-44c6-8e5d-482a812cf2f6/HAWKEYE_FLOOD_COMPREHENSIVE_RESULTS.txt
+[3] 03-foundation-model.jpeg https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/133393716/da3fda8a-978d-4134-835c-de016128059b/03-foundation-model.jpeg?AWSAccessKeyId=ASIA2F3EMEYERQFI2YDB&Signature=jibUyBWOe784YQ4pkOGrgmJjahQ%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEDMaCXVzLWVhc3QtMSJHMEUCIHPuTpzIbZv%2FRoSQhIqHuJ7dYUH%2FUJYhBRcZUmIw%2BJHeAiEA81LtSMu6SrmPFrdfGk1wddx%2F0XqGE4CQGU8P5EslT6gq%2FAQI%2B%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw2OTk3NTMzMDk3MDUiDPc28mxiQHcj81orjirQBJm9U1tC61lfFcf8mQhAvzx2s1jGLTFcN%2BbYsnYnC1G7e2sok9JE%2Begjg%2BzBOotLYSXIp45UwJXnr7FrgCml96EwPgCXb%2FX1zH0TWLLI%2BDBKLMgxoFpmHQU6WLCR9EWb5NtDajx1EZLohKlHnFOkZ9znphH1zRIUpchbIGsQNc1e1U2aSeIukTmGtNJw3JkcDx4dBCDVzwaHjRH8rpHEtiqsuvilAAy9AfhPbayLWbqbzbvLJth1v2JnSCuh2syxGJqOUcxrw16t2MtF1Ak6UDrzEVe0eNh3x7Dlu1v%2FQFDkcU8AXLDrChc%2B72Rx91yy%2FffOvFkm8rU4vWBhph4YI8crk%2FWkn6FBZFjZ5Ojr5kYLGcJOPmPkfPUKtApS1aKQRv5NUlkSJSIWUAehu0bOj0OSmD9WKYMQ0nhfqUx5qUiPILCsEdNPPvuhzGQcNplQ2VZo3N7DlxebtKsm6kVRqDsQWkAYuzEwDmkuVWdF%2F%2BD9huiNcivG9Wdqexm1KXmpxGcxA0XEKipAugeMvLMAUt%2F19f8FeK4fqBTiyvh05%2F1v%2FbMolkFb1trgx%2F4YbeTQjwQHJHChV2stXqvB%2BkvwLhaY44uK18OSst8pck6BgjfPoXxr20%2BNwtgj38lTPyeR4b%2BEt89H%2F%2FrA306PE82gUAc98MjZSAOWxLpECBo95LxeEO5WNjeHG1bX3jGyOnx2veEFSE9EpRzD9STdGj3%2FMuzTeLVCzCAHmU%2BhYmeaBxAUjIqnY%2B7IFQO%2Br5Uh7vZqTZfokUyUcYSfEfA4%2FYju3xQw9pfFyAY6mAEPZIDq%2Ffrxf22STwhImxL%2BDpzP5cwDpbC%2BLaLA%2BBUi0nLWzsukYHg6nx%2BjL8Hbj6AA%2FR%2Bc3RTBfThZOPiMFGKrHMWbcW2yZsjzDco7Jv1%2FmwXqF3ddWFpCUFWZqeB7xcOUvotFMeWCB1GLrfJCj5IClhh4oISvlC6N5GiMTLueP9KSNEFB%2F1mVx1osiAOq6WQDfHbRHygUHw%3D%3D&Expires=1762741407
+[4] model_report_flood_ultimate.json https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/41acfda0-2b28-4a72-a72d-b606c1694306/model_report_flood_ultimate.json
+[5] flood_summary.txt https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/fbc13f31-d147-4029-82c7-f3d02dab7fc1/flood_summary.txt
+[6] hawkeye_v4_analysis_report.json https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/133393716/12db8ef9-8547-48ce-9432-a835417b5257/hawkeye_v4_analysis_report.json
